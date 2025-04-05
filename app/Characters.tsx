@@ -70,7 +70,7 @@ export default function Characters() {
         <Pressable style={styles.button}>
           <Text style={styles.textButton}>PERSONAJES</Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={() => router.navigate('/GameMode')}>
+        <Pressable style={styles.button} onPress={() => router.navigate('/Game')}>
           <Text style={styles.textButton}>JUGAR</Text>
         </Pressable>
       </View>
