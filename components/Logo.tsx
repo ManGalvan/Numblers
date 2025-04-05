@@ -9,6 +9,7 @@ export default function Logo() {
             <Image
                 source={logo}
                 style={styles.image}
+                contentFit='contain'
             />
         </View>
     );
@@ -28,6 +29,5 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         alignSelf: 'center',
         marginTop: 20,
-        resizeMode: 'contain'
     }
 });
