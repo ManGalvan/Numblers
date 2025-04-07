@@ -1,8 +1,28 @@
-import { View, Text, StyleSheet, Pressable} from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert} from 'react-native';
 import Logo from "@/components/Logo";
 import {router, useRouter} from 'expo-router';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useState, useEffect } from 'react';
 
 export default function GameMode() {
+
+let [operationType, setOperationType] = useState('');
+
+const saveOperationType = async (typeOperation:string) => {
+  try {
+    await AsyncStorage.setItem('operationType', typeOperation);
+    router.navigate('/Game')
+  } catch (e) {
+    Alert.alert(`Error: ${e}`);
+  }
+}
+
+useEffect(() => {
+  if(operationType !== '')
+  saveOperationType(operationType);
+}, [operationType]);
+
+
     return (
         <View style={styles.container}>
             <Logo/>
@@ -10,16 +30,24 @@ export default function GameMode() {
                 <Text style={styles.header}>SELECCIONA UN MODO DE JUEGO</Text>
             </View>
             <View style={styles.subcontaier}>
-                <Pressable style={styles.button}>
+                <Pressable style={styles.button} onPress={() => {
+                  setOperationType('suma')
+                  }}>
                     <Text style={styles.textButton}>SUMA</Text>
                 </Pressable>
-                <Pressable style={styles.button}>
+                <Pressable style={styles.button} onPress={() => {
+                  setOperationType('resta')
+                }}>
                     <Text style={styles.textButton}>RESTA</Text>
                 </Pressable>
-                <Pressable style={styles.button}>
+                <Pressable style={styles.button} onPress={() => {
+                  setOperationType('multiplicacion')
+                }}>
                     <Text style={styles.textButton}>MULTIPLICACION</Text>
                 </Pressable>
-                <Pressable style={styles.button}>
+                <Pressable style={styles.button} onPress={() => {
+                  setOperationType('division')
+                }}>
                     <Text style={styles.textButton}>DIVISION</Text>
                 </Pressable>
             </View>
