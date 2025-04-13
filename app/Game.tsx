@@ -10,6 +10,12 @@ const bgImage = require('@/assets/images/bg.png');
 
 export default function Game() {
   const [operationType, setOperationType] = useState<string | null>(null);
+  const [lifesPlayer, setLifesPlayer] = useState(3);
+  const [lifesEnemy, setLifesEnemy] = useState(3);
+  const [totalQuestions, setTotalQuestions] = useState(3);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+
+  const progress = questionsAnswered / totalQuestions;
 
   useEffect(() => {
     const fetchOperationType = async () => {
@@ -28,39 +34,48 @@ export default function Game() {
     fetchOperationType();
   }, []);
 
-  const [lifes, setLifes] = useState(3);
-  const [totalQuestions, setTotalQuestions] = useState(3);
-  const [questionsAnswered, setQuestionsAnswered] = useState(0);
-  const progress = questionsAnswered / totalQuestions;
-
-  if (!operationType) {
-    // Mientras carga del AsyncStorage
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Cargando tipo de operación...</Text>
-      </View>
-    );
-  }
+  useEffect(() => {
+    if (progress === 1) {
+      Alert.alert('Juego terminado');
+    }
+  }, [progress]);
 
   return (
     <View style={styles.container}>
       <ImageBackground source={bgImage} resizeMode='cover' style={styles.bgImage}>
-        <View style={styles.containerPBar}>
-          <ProgressBar progress={progress} />
-        </View>
-        <View style={styles.charactersContainer}>
-          <Player />
-          <Enemy />
-        </View>
+        {
+          !operationType ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Cargando...</Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.containerPBar}>
+                <ProgressBar progress={progress} />
+              </View>
+              <View style={styles.charactersContainer}>
+                <Player lifes={lifesPlayer} />
+                <Enemy lifes={lifesEnemy} />
+              </View>
+            </>
+          )
+        }
       </ImageBackground>
-      <View style={styles.questionsContainer}>
-        <GameLogic
-          operationType={operationType}
-          totalQuestions={totalQuestions}
-          questionsAnswered={questionsAnswered}
-          setQuestionsAnswered={setQuestionsAnswered}
-        />
-      </View>
+
+      {
+        operationType && (
+          <View style={styles.questionsContainer}>
+            <GameLogic
+              operationType={operationType}
+              totalQuestions={totalQuestions}
+              questionsAnswered={questionsAnswered}
+              setQuestionsAnswered={setQuestionsAnswered}
+              setLifesPlayer={setLifesPlayer}
+              setLifesEnemy={setLifesEnemy}
+            />
+          </View>
+        )
+      }
     </View>
   );
 }
@@ -91,7 +106,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 200,
+    marginTop: 250,
   },
   questionsContainer: {
     display: 'flex',
