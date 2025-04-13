@@ -13,6 +13,7 @@ export default function Grade() {
   const saveGrade = async () => {
     try {
         await AsyncStorage.setItem('grade', selectedGrade);
+        router.navigate('/Characters');
     } catch (e) {
         Alert.alert(`Error: ${e}`)
     }
