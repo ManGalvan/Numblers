@@ -1,165 +1,166 @@
-import { useState, useEffect } from "react"
-import { Alert, StyleSheet, View, Text, TextInput, Pressable } from "react-native";
+import { useState, useEffect, useRef } from "react";
+import {
+  Alert,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Keyboard,
+} from "react-native";
 
 interface GameLogicProps {
-    operationType: string;
-    totalQuestions: number;
-    questionsAnswered: number;
+  operationType: string;
+  totalQuestions: number;
+  questionsAnswered: number;
+  setQuestionsAnswered: React.Dispatch<React.SetStateAction<number>>;
+  setLifesPlayer: React.Dispatch<React.SetStateAction<number>>;
+  setLifesEnemy: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export default function GameLogic({
-    operationType, 
-    totalQuestions, 
-    questionsAnswered, 
-    setQuestionsAnswered
-}: {
-    operationType:string;
-    totalQuestions:number; 
-    questionsAnswered:number; 
-    setQuestionsAnswered:React.Dispatch<React.SetStateAction<number>>;
+  operationType,
+  totalQuestions,
+  questionsAnswered,
+  setQuestionsAnswered,
+  setLifesPlayer,
+  setLifesEnemy,
+}: GameLogicProps) {
+  const [num1, setNum1] = useState(Math.floor(Math.random() * 100));
+  const [num2, setNum2] = useState(Math.floor(Math.random() * 100));
+  const [score, setScore] = useState(0);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [correctAnswer, setCorrectAnswer] = useState(0);
+  const [isAnswered, setIsAnswered] = useState(false);
 
-}){ //Recibe el tipo de operacion como parametro
-//********** CONSTANTES Y ESTADOS **********/
-    //Estado que almacena un primer numero aleatorio
-    const [num1, setNum1] = useState(Math.floor(Math.random() * 100));
+  // Referencia al TextInput para ocultar el teclado
+  const inputRef = useRef<TextInput>(null);
 
-    //Estado que almacena un segundo numero aleatorio
-    const [num2, setNum2] = useState(Math.floor(Math.random() * 100));
+  const newRandoms = () => {
+    setNum1(Math.floor(Math.random() * 100));
+    setNum2(Math.floor(Math.random() * 100));
+  };
 
-    //Estado para llevar el puntaje del usuario
-    const [score, setScore] = useState(0);
+  const handleCorrectAnswer = () => {
+    setScore(score + 1);
+    setQuestionsAnswered((prev) => prev + 1);
+    setLifesEnemy((prev) => prev - 1); // Restar vida al enemigo
+    Alert.alert('¡Respuesta Correcta!', '¡Excelente, sigue así!');
+  };
 
-    //Estado que almacena la respuesta del usuario
-    const [userAnswer, setUserAnswer] = useState('');
+  const handleIncorrectAnswer = () => {
+    setQuestionsAnswered((prev) => prev + 1);
+    setLifesPlayer((prev) => prev - 1); // Restar vida al jugador
+    Alert.alert('¡Respuesta Incorrecta!', 'Más suerte para la próxima');
+  };
 
-    //Estado que almacena la respuesta correcta de la operacion
-    const [correctAnswer, setCorrectAnswer] = useState(0);
+  const generateQuestion = (operationType: string) => {
+    switch (operationType) {
+      case 'suma':
+        return `${num1} + ${num2} = ?`;
+      case 'resta':
+        return `${num1} - ${num2} = ?`;
+      case 'multiplicacion':
+        return `${num1} * ${num2} = ?`;
+      case 'division':
+        return `${num1} / ${num2} = ?`;
+      default:
+        Alert.alert('Error', 'Operación no reconocida');
+        return '';
+    }
+  };
 
-    //Estado que almacena si una pregunta ya fue respondida
-    const [isAnswered, setIsAnswered] = useState(false);
+  const checkAnswer = (operationType: string) => {
+    let result = 0;
 
-
-
-    //********** FUNCIONES Y EFECTOS **********/
-    //Funcion para generar nuevos numeros aleatorios
-    const newRandoms = () => {
-        setNum1(Math.floor(Math.random() * 100));
-        setNum2(Math.floor(Math.random() * 100));
+    switch (operationType) {
+      case 'suma':
+        result = num1 + num2;
+        break;
+      case 'resta':
+        result = num1 - num2;
+        break;
+      case 'multiplicacion':
+        result = num1 * num2;
+        break;
+      case 'division':
+        result = Math.floor(num1 / num2);
+        break;
     }
 
-    //Funcion para manejar respuestas correctas
-    const handleCorrectAnswer = () => {
-        setScore(score + 1);
-        setQuestionsAnswered(questionsAnswered + 1);
-        Alert.alert('Respuesta Correcta!', 'Excelente, sigue así');
+    setCorrectAnswer(result);
+
+    if (parseInt(userAnswer) === result) {
+      handleCorrectAnswer();
+    } else {
+      handleIncorrectAnswer();
     }
 
-    //Funcion para manejar respuestas incorrectas
-    const handleIncorrectAnswer = () => {
-        setQuestionsAnswered(questionsAnswered + 1);
-        Alert.alert('Respuesta Incorrecta!', 'Mas suerte para la proxima');
+    setIsAnswered(true);
+  };
+
+  useEffect(() => {
+    if (isAnswered) {
+      setTimeout(() => {
+        newRandoms();
+        setUserAnswer('');
+        setIsAnswered(false);
+      }, 1000);
     }
+  }, [isAnswered]);
 
-    //Funcion para generar una nueva pregunta aleatoria
-    const generateQuestion = (operationType:any) => {
-        if(operationType === 'suma'){
-            return `${num1} + ${num2} = ?`;
-        }else if(operationType === 'resta'){
-            return `${num1} - ${num2} = ?`;
-        } else if(operationType === 'multiplicacion'){
-            return `${num1} * ${num2} = ?`;
-        } else if(operationType === 'division'){
-            return `${num1} / ${num2} = ?`;
-        } else {
-            Alert.alert('Error', 'Ocurrió un error inesperado!');
-        }
-    }
-
-    const checkAnswer = (operationType: any) => {
-        let result = 0;
-    
-        if (operationType === 'suma') {
-            result = num1 + num2;
-        } else if (operationType === 'resta') {
-            result = num1 - num2;
-        } else if (operationType === 'multiplicacion') {
-            result = num1 * num2;
-        } else if (operationType === 'division') {
-            result = num1 / num2;
-        }
-    
-        // Guardamos la respuesta correcta si quieres mostrarla luego
-        setCorrectAnswer(result);
-    
-        // Comparamos usando el resultado calculado directamente
-        if (parseInt(userAnswer) === result) {
-            handleCorrectAnswer();
-        } else {
-            handleIncorrectAnswer();
-        }
-    
-        setIsAnswered(true);
-    };
-
-    //Vuelve a renderizar todo cuando la respuesta ingresada por el usuario se ha verificado
-    useEffect(() => {
-        if(isAnswered){
-            setTimeout(() => {
-                newRandoms();   //Se generan nuevos numeros aleatorios
-                setUserAnswer('');  //Limpia el campo de la respuesta del usuario
-                setIsAnswered(false);   //Reiniciar la bandera de la respuesta
-            }, 1000);   //Esperar un segundo antes de generar una nueva pregunta
-        }
-    }, [isAnswered]);
-
-
-    //********** VISTA (MAIN) **********/
-    return (
-        <View style={styles.container}>
-            <Text style={styles.problem}>{generateQuestion(operationType)}</Text>
-            <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={userAnswer}
-                onChangeText={setUserAnswer}
-                placeholder="Tu respuesta"
-            />
-            <Pressable style={styles.btn} onPress={() => {checkAnswer(operationType)}}>
-                <Text style={styles.txtBtn}>Comprobar respuesta</Text>
-            </Pressable>
-        </View>
-    );  
-
+  return (
+    <View style={styles.container}>
+      <Text style={styles.problem}>{generateQuestion(operationType)}</Text>
+      <TextInput
+        ref={inputRef}
+        style={styles.input}
+        keyboardType="numeric"
+        value={userAnswer}
+        onChangeText={setUserAnswer}
+        placeholder="Tu respuesta"
+      />
+      <Pressable
+        style={styles.btn}
+        onPress={() => {
+          inputRef.current?.blur(); // Ocultar teclado
+          checkAnswer(operationType);
+        }}
+      >
+        <Text style={styles.txtBtn}>Comprobar respuesta</Text>
+      </Pressable>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        alignItems: 'center',
-        backgroundColor: '#793A03',
-        paddingBottom: 20
-    },
-    problem: {
-        fontSize: 24,
-        marginBottom: 10,
-        color: 'white',
-    },
-    input: {
-        width: '80%',
-        height: 40,
-        backgroundColor: '#fff',
-        marginBottom: 20,
-        paddingLeft: 10,
-        color: '#000',
-    },
-    btn: {
-        backgroundColor: '#FED300',
-        borderRadius: 15,
-        padding: 10,
-    }, 
-    txtBtn: {
-        color: '#fff',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        fontSize: 30
-    }
+  container: {
+    alignItems: 'center',
+    backgroundColor: '#793A03',
+    paddingBottom: 20,
+  },
+  problem: {
+    fontSize: 24,
+    marginBottom: 10,
+    color: 'white',
+  },
+  input: {
+    width: '80%',
+    height: 40,
+    backgroundColor: '#fff',
+    marginBottom: 20,
+    paddingLeft: 10,
+    color: '#000',
+  },
+  btn: {
+    backgroundColor: '#FED300',
+    borderRadius: 15,
+    padding: 10,
+  },
+  txtBtn: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 30,
+  },
 });
