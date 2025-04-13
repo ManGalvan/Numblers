@@ -1,11 +1,18 @@
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react'; // Importar useState para manejar el estado
+import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import Logo from '@/components/Logo';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, {
+  SlideInLeft,
+  SlideOutRight,
+  SlideInRight,
+  SlideOutLeft,
+} from 'react-native-reanimated';
 
-// Lista de imágenes de personajes
+// Lista de imágenes (requiere import estático)
 const characterImages = [
   require('@/assets/images/characters/c1.png'),
   require('@/assets/images/characters/c2.png'),
@@ -16,60 +23,90 @@ const characterImages = [
   require('@/assets/images/characters/c7.png'),
   require('@/assets/images/characters/c8.png'),
   require('@/assets/images/characters/c9.png'),
-  require('@/assets/images/characters/c10.png')
+  require('@/assets/images/characters/c10.png'),
 ];
 
 export default function Characters() {
-  // Estado para controlar el índice del personaje
-  const [characterIndex, setCharacterIndex] = useState(0); // Empezamos con el primer personaje (índice 0)
+  const [characterIndex, setCharacterIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right');
 
-  // Funciones para manejar la navegación entre personajes
+  useEffect(() => {
+    const loadCharacter = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('character');
+        if (saved !== null) {
+          const index = characterImages.findIndex((_, idx) => `c${idx + 1}.png` === saved);
+          if (index !== -1) setCharacterIndex(index);
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    loadCharacter();
+  }, []);
+
+  useEffect(() => {
+    const saveCharacter = async () => {
+      try {
+        const filename = `c${characterIndex + 1}.png`;
+        await AsyncStorage.setItem('character', filename);
+      } catch (e) {
+        console.log(e);
+      }
+    };
+
+    saveCharacter();
+  }, [characterIndex]);
+
   const handlePrevious = () => {
-    if (characterIndex > 0) {
-      setCharacterIndex(characterIndex - 1);
-    } else if(characterIndex === 0) {
-      setCharacterIndex(characterIndex + 9);
-    }
+    setSlideDirection('left');
+    setCharacterIndex((prev) => (prev === 0 ? characterImages.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
-    if (characterIndex < characterImages.length - 1) { // Verificar que no se exceda el índice máximo
-      setCharacterIndex(characterIndex + 1);
-    } else if(characterIndex === 9) {
-      setCharacterIndex(characterIndex - 9);
-    }
+    setSlideDirection('right');
+    setCharacterIndex((prev) => (prev === characterImages.length - 1 ? 0 : prev + 1));
   };
+
+  const exit = async () => {  //Funcion que retorna al inicio y elimina todas las variables almacenadas localmente
+    try {
+      let keys = await AsyncStorage.getAllKeys();
+      await AsyncStorage.multiRemove(keys);
+      router.navigate('/SignIn');
+    } catch(e) {
+      console.log(`Error: ${e}`);
+    }
+  }
 
   return (
     <View style={styles.container}>
       <Logo />
       <View style={styles.characterContainer}>
-        <Image
-          source={characterImages[characterIndex]} // Usamos el arreglo de imágenes y el índice actual
-          style={styles.character}
-        />
+        <Animated.View
+          entering={slideDirection === 'right' ? SlideInRight.duration(300) : SlideInLeft.duration(300)}
+          exiting={slideDirection === 'right' ? SlideOutLeft.duration(300) : SlideOutRight.duration(300)}
+          key={characterIndex} // Muy importante para que se reinicie la animación
+          style={styles.animatedView}
+        >
+          <Image
+            source={characterImages[characterIndex]}
+            style={styles.character}
+            contentFit="contain"
+          />
+        </Animated.View>
       </View>
       <View style={styles.arrowsContainer}>
-        <Ionicons
-          name="caret-back-outline"
-          size={100}
-          color={'#fff'}
-          onPress={handlePrevious} // Función de "Anterior"
-        />
-        <Ionicons
-          name="caret-forward-outline"
-          size={100}
-          color={'#fff'}
-          onPress={handleNext} // Función de "Siguiente"
-        />
+        <Ionicons name="caret-back-outline" size={100} color="#fff" onPress={handlePrevious} />
+        <Ionicons name="caret-forward-outline" size={100} color="#fff" onPress={handleNext} />
       </View>
       <View style={styles.subcontaier}>
-        <Pressable style={styles.button}>
-          <Text style={styles.textButton}>PROGRESO</Text>
+        <Pressable style={styles.button} onPress={() => {exit()}}>
+          <Text style={styles.textButton}>SALIR</Text>
         </Pressable>
-        <Pressable style={styles.button}>
+        {/* <Pressable style={styles.button}>
           <Text style={styles.textButton}>PERSONAJES</Text>
-        </Pressable>
+        </Pressable> */}
         <Pressable style={styles.button} onPress={() => router.navigate('/GameMode')}>
           <Text style={styles.textButton}>JUGAR</Text>
         </Pressable>
@@ -82,7 +119,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#007AFF'
+    backgroundColor: '#007AFF',
   },
   subcontaier: {
     flex: 1,
@@ -91,16 +128,15 @@ const styles = StyleSheet.create({
   },
   characterContainer: {
     flex: 1,
-    top: 0,
-    flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
+    alignItems: 'center',
+    overflow: 'hidden', // para evitar que se vea el slide por fuera
   },
   character: {
-    width: '100%',
-    height: '100%',
-    alignSelf: 'center',
-    resizeMode: 'contain'
+    width: 200,
+    height: 300,
+    resizeMode: 'contain',
   },
   button: {
     backgroundColor: '#FED300',
@@ -115,7 +151,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   arrowsContainer: {
-    display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
+  },
+  animatedView: { 
   }
 });
