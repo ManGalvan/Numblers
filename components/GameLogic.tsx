@@ -8,6 +8,7 @@ import {
   Pressable,
   Keyboard,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface GameLogicProps {
   operationType: string;
@@ -26,65 +27,87 @@ export default function GameLogic({
   setLifesPlayer,
   setLifesEnemy,
 }: GameLogicProps) {
-  const [num1, setNum1] = useState(Math.floor(Math.random() * 100));
-  const [num2, setNum2] = useState(Math.floor(Math.random() * 100));
+  const [grade, setGrade] = useState("1ero de Primaria");
+  const [num1, setNum1] = useState(0);
+  const [num2, setNum2] = useState(0);
   const [score, setScore] = useState(0);
-  const [userAnswer, setUserAnswer] = useState('');
+  const [userAnswer, setUserAnswer] = useState("");
   const [correctAnswer, setCorrectAnswer] = useState(0);
   const [isAnswered, setIsAnswered] = useState(false);
-
-  // Referencia al TextInput para ocultar el teclado
   const inputRef = useRef<TextInput>(null);
 
-  const newRandoms = () => {
-    setNum1(Math.floor(Math.random() * 100));
-    setNum2(Math.floor(Math.random() * 100));
+  useEffect(() => {
+    const getGrade = async () => {
+      const storedGrade = await AsyncStorage.getItem("grade");
+      if (storedGrade) setGrade(storedGrade);
+    };
+    getGrade();
+  }, []);
+
+  const generateRandomNumbers = () => {
+    let min = 1, max = 99;
+    if (grade === "4to de Primaria" || grade === "5to de Primaria" || grade === "6to de Primaria") {
+      min = 100; // 3 dígitos
+      max = 999;
+    }
+
+    let a = Math.floor(Math.random() * (max - min + 1)) + min;
+    let b = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    // Asegurar que la resta sea positiva
+    if (operationType === "resta" && b > a) [a, b] = [b, a];
+
+    // Asegurar que la división sea exacta
+    if (operationType === "division") {
+      a = a - (a % b); // Asegura que a sea divisible entre b
+    }
+
+    setNum1(a);
+    setNum2(b);
   };
 
   const handleCorrectAnswer = () => {
     setScore(score + 1);
     setQuestionsAnswered((prev) => prev + 1);
-    setLifesEnemy((prev) => prev - 1); // Restar vida al enemigo
-    Alert.alert('¡Respuesta Correcta!', '¡Excelente, sigue así!');
+    setLifesEnemy((prev) => prev - 1);
+    Alert.alert("¡Respuesta Correcta!", "¡Excelente, sigue así!");
   };
 
   const handleIncorrectAnswer = () => {
     setQuestionsAnswered((prev) => prev + 1);
-    setLifesPlayer((prev) => prev - 1); // Restar vida al jugador
-    Alert.alert('¡Respuesta Incorrecta!', 'Más suerte para la próxima');
+    setLifesPlayer((prev) => prev - 1);
+    Alert.alert("¡Respuesta Incorrecta!", "Más suerte para la próxima");
   };
 
   const generateQuestion = (operationType: string) => {
     switch (operationType) {
-      case 'suma':
+      case "suma":
         return `${num1} + ${num2} = ?`;
-      case 'resta':
+      case "resta":
         return `${num1} - ${num2} = ?`;
-      case 'multiplicacion':
+      case "multiplicacion":
         return `${num1} * ${num2} = ?`;
-      case 'division':
+      case "division":
         return `${num1} / ${num2} = ?`;
       default:
-        Alert.alert('Error', 'Operación no reconocida');
-        return '';
+        return "Operación no reconocida";
     }
   };
 
   const checkAnswer = (operationType: string) => {
     let result = 0;
-
     switch (operationType) {
-      case 'suma':
+      case "suma":
         result = num1 + num2;
         break;
-      case 'resta':
+      case "resta":
         result = num1 - num2;
         break;
-      case 'multiplicacion':
+      case "multiplicacion":
         result = num1 * num2;
         break;
-      case 'division':
-        result = Math.floor(num1 / num2);
+      case "division":
+        result = num1 / num2;
         break;
     }
 
@@ -100,10 +123,14 @@ export default function GameLogic({
   };
 
   useEffect(() => {
+    generateRandomNumbers();
+  }, [operationType, grade]);
+
+  useEffect(() => {
     if (isAnswered) {
       setTimeout(() => {
-        newRandoms();
-        setUserAnswer('');
+        generateRandomNumbers();
+        setUserAnswer("");
         setIsAnswered(false);
       }, 1000);
     }
@@ -123,7 +150,7 @@ export default function GameLogic({
       <Pressable
         style={styles.btn}
         onPress={() => {
-          inputRef.current?.blur(); // Ocultar teclado
+          inputRef.current?.blur();
           checkAnswer(operationType);
         }}
       >
@@ -135,32 +162,32 @@ export default function GameLogic({
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    backgroundColor: '#793A03',
+    alignItems: "center",
+    backgroundColor: "#793A03",
     paddingBottom: 20,
   },
   problem: {
     fontSize: 24,
     marginBottom: 10,
-    color: 'white',
+    color: "white",
   },
   input: {
-    width: '80%',
+    width: "80%",
     height: 40,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginBottom: 20,
     paddingLeft: 10,
-    color: '#000',
+    color: "#000",
   },
   btn: {
-    backgroundColor: '#FED300',
+    backgroundColor: "#FED300",
     borderRadius: 15,
     padding: 10,
   },
   txtBtn: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
+    color: "#fff",
+    fontWeight: "bold",
+    textAlign: "center",
     fontSize: 30,
   },
 });

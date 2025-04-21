@@ -13,6 +13,7 @@ export default function Grade() {
   const saveGrade = async () => {
     try {
         await AsyncStorage.setItem('grade', selectedGrade);
+        console.log(selectedGrade);
         router.navigate('/Characters');
     } catch (e) {
         Alert.alert(`Error: ${e}`)
@@ -31,12 +32,12 @@ export default function Grade() {
                     onValueChange={(itemname) => {
                         setSelectedGrade(itemname)
                     }}>
-                    <Picker.Item label="1ero de Primaria"/>
-                    <Picker.Item label="2do de Primaria"/>
-                    <Picker.Item label="3ro de Primaria"/>
-                    <Picker.Item label="4to de Primaria"/>
-                    <Picker.Item label="5to de Primaria"/>
-                    <Picker.Item label="6to de Primaria"/>
+                    <Picker.Item label="1ero de Primaria" value={"1ero de Primaria"}/>
+                    <Picker.Item label="2do de Primaria" value={"2do de Primaria"}/>
+                    <Picker.Item label="3ro de Primaria" value={"3ro de Primaria"}/>
+                    <Picker.Item label="4to de Primaria" value={"4to de Primaria"}/>
+                    <Picker.Item label="5to de Primaria" value={"5to de Primaria"}/>
+                    <Picker.Item label="6to de Primaria" value={"6to de Primaria"}/>
                 </Picker>
               <Pressable style={styles.btnContinuar} onPress={() => saveGrade()}>
                 <Text style={styles.txtContinuar}>Continuar</Text>
