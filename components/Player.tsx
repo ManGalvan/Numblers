@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { View, StyleSheet } from "react-native";
-import { Image } from "expo-image";
+import { useState, useEffect, useRef } from "react";
+import { View, StyleSheet, Animated } from "react-native";
 import ProgressBarLife from "./ProgressBarLife";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -20,6 +19,7 @@ const characterImages: { [key: string]: any } = {
 
 export default function Player({ lifes }: { lifes: number }) {
   const [characterFile, setCharacterFile] = useState<string | null>(null);
+  const bounceAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loadCharacter = async () => {
@@ -28,7 +28,6 @@ export default function Player({ lifes }: { lifes: number }) {
         if (savedCharacter && characterImages[savedCharacter]) {
           setCharacterFile(savedCharacter);
         } else {
-          // Si no hay guardado, usar uno por defecto
           setCharacterFile('c1.png');
         }
       } catch (e) {
@@ -39,14 +38,31 @@ export default function Player({ lifes }: { lifes: number }) {
     loadCharacter();
   }, []);
 
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounceAnim, {
+          toValue: -10,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bounceAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
   return (
     <View style={styles.container}>
       <ProgressBarLife progress={lifes / 3} />
       {characterFile && (
-        <Image
-          contentFit="contain"
-          style={styles.character}
+        <Animated.Image
           source={characterImages[characterFile]}
+          style={[styles.character, { transform: [{ translateY: bounceAnim }] }]}
+          resizeMode="contain"
         />
       )}
     </View>
