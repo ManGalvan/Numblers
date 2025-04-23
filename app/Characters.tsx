@@ -101,14 +101,14 @@ export default function Characters() {
         <Ionicons name="caret-forward-outline" size={100} color="#fff" onPress={handleNext} />
       </View>
       <View style={styles.subcontaier}>
-        <Pressable style={styles.button} onPress={() => {exit()}}>
-          <Text style={styles.textButton}>SALIR</Text>
-        </Pressable>
-        {/* <Pressable style={styles.button}>
-          <Text style={styles.textButton}>PERSONAJES</Text>
-        </Pressable> */}
         <Pressable style={styles.button} onPress={() => router.navigate('/GameMode')}>
           <Text style={styles.textButton}>JUGAR</Text>
+        </Pressable>
+        <Pressable style={styles.button} onPress={() => router.navigate('/GameMode')}>
+          <Text style={styles.textButton}>PERFIL</Text>
+        </Pressable>
+        <Pressable style={styles.button} onPress={() => {exit()}}>
+          <Text style={styles.textButton}>SALIR</Text>
         </Pressable>
       </View>
     </View>
