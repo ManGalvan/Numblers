@@ -17,5 +17,6 @@ export default function ProgressBarLife({progress}: {progress:number}) {
 
 const styles = StyleSheet.create({
     progressBar: {
+        marginBottom: 10
     }
 });
