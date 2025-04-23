@@ -45,10 +45,10 @@ export default function GameLogic({
   }, []);
 
   const generateRandomNumbers = () => {
-    let min = 1, max = 99;
+    let min = 1, max = 9;
     if (grade === "4to de Primaria" || grade === "5to de Primaria" || grade === "6to de Primaria") {
-      min = 100; // 3 dígitos
-      max = 999;
+      min = 10; // 2 dígitos
+      max = 99;
     }
 
     let a = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -70,13 +70,13 @@ export default function GameLogic({
     setScore(score + 1);
     setQuestionsAnswered((prev) => prev + 1);
     setLifesEnemy((prev) => prev - 1);
-    Alert.alert("¡Respuesta Correcta!", "¡Excelente, sigue así!");
+    // Alert.alert("¡Respuesta Correcta!", "¡Excelente, sigue así!");
   };
 
   const handleIncorrectAnswer = () => {
     setQuestionsAnswered((prev) => prev + 1);
     setLifesPlayer((prev) => prev - 1);
-    Alert.alert("¡Respuesta Incorrecta!", "Más suerte para la próxima");
+    // Alert.alert("¡Respuesta Incorrecta!", "Más suerte para la próxima");
   };
 
   const generateQuestion = (operationType: string) => {
