@@ -30,7 +30,6 @@ export default function GameMode() {
 
   useEffect(() => {
     getGrade();
-    console.log(grade);
   }, [grade]);
 
   // Determinar qué operaciones mostrar según el grado
