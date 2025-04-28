@@ -69,16 +69,6 @@ export default function Characters() {
     setCharacterIndex((prev) => (prev === characterImages.length - 1 ? 0 : prev + 1));
   };
 
-  const exit = async () => {  //Funcion que retorna al inicio y elimina todas las variables almacenadas localmente
-    try {
-      let keys = await AsyncStorage.getAllKeys();
-      await AsyncStorage.multiRemove(keys);
-      router.navigate('/SignIn');
-    } catch(e) {
-      console.log(`Error: ${e}`);
-    }
-  }
-
   return (
     <View style={styles.container}>
       <Logo />
@@ -104,11 +94,8 @@ export default function Characters() {
         <Pressable style={styles.button} onPress={() => router.navigate('/GameMode')}>
           <Text style={styles.textButton}>JUGAR</Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={() => router.navigate('/GameMode')}>
-          <Text style={styles.textButton}>PERFIL</Text>
-        </Pressable>
-        <Pressable style={styles.button} onPress={() => {exit()}}>
-          <Text style={styles.textButton}>SALIR</Text>
+        <Pressable style={styles.button} onPress={() => router.navigate('/Settings')}>
+          <Text style={styles.textButton}>AJUSTES</Text>
         </Pressable>
       </View>
     </View>
