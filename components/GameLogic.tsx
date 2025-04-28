@@ -18,8 +18,8 @@ interface GameLogicProps {
   setLifesPlayer: React.Dispatch<React.SetStateAction<number>>;
   setLifesEnemy: React.Dispatch<React.SetStateAction<number>>;
   isGameStarted: boolean;
-  lifesPlayer: number; // 🔥 Necesitamos saber las vidas actuales
-  onGameOver: () => void; // 🔥 Función que avisa que el juego terminó
+  lifesPlayer: number;
+  onGameOver: () => void; // Función que avisa que el juego terminó
 }
 
 export default function GameLogic({
