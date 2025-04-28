@@ -6,6 +6,7 @@ import Enemy from '@/components/Enemy';
 import GameLogic from '@/components/GameLogic';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import YoutubePlayer from 'react-native-youtube-iframe';
 
 const bgImage = require('@/assets/images/bg.png');
 
@@ -15,7 +16,8 @@ export default function Game() {
   const [lifesEnemy, setLifesEnemy] = useState(10);
   const [totalQuestions, setTotalQuestions] = useState(10);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalGameOver, setModalGameOverVisible] = useState(false);
+  const [modalTutorial, setModalTutorialVisible] = useState(true);
 
   const progress = questionsAnswered / totalQuestions;
 
@@ -38,7 +40,7 @@ export default function Game() {
 
   useEffect(() => {
     if (progress >= 1) {
-      setModalVisible(!modalVisible);
+      setModalGameOverVisible(!modalGameOver);
     }
   }, [progress]);
 
@@ -82,12 +84,33 @@ export default function Game() {
       <Modal
         animationType='slide'
         transparent={true}
-        visible={modalVisible}
+        visible={modalTutorial}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Preparate para la batalla..</Text>
+            <YoutubePlayer
+              height={200}
+              width={300} // agrega esto
+              play={false}
+              videoId={'oexd_Dfic_Q'}
+            />
+            <Pressable style={[styles.button, styles.buttonCloseModal]} onPress={() => { setModalTutorialVisible(!modalTutorial) }}>
+              <Text style={styles.textButtonModal}>Estoy listo</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType='slide'
+        transparent={true}
+        visible={modalGameOver}
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>El juego ha terminado! Has ganado 0 monedas</Text>
-            <Pressable style={[styles.button, styles.buttonCloseModal]} onPress={() => {router.navigate('/Characters')}}>
+            <Pressable style={[styles.button, styles.buttonCloseModal]} onPress={() => { router.navigate('/Characters') }}>
               <Text style={styles.textButtonModal}>Salir</Text>
             </Pressable>
           </View>
@@ -131,7 +154,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#fff',
   },
-  centeredView:{
+  centeredView: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center'
