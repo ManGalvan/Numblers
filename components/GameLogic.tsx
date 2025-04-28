@@ -17,6 +17,9 @@ interface GameLogicProps {
   setQuestionsAnswered: React.Dispatch<React.SetStateAction<number>>;
   setLifesPlayer: React.Dispatch<React.SetStateAction<number>>;
   setLifesEnemy: React.Dispatch<React.SetStateAction<number>>;
+  isGameStarted: boolean;
+  lifesPlayer: number; // 🔥 Necesitamos saber las vidas actuales
+  onGameOver: () => void; // 🔥 Función que avisa que el juego terminó
 }
 
 export default function GameLogic({
@@ -26,6 +29,9 @@ export default function GameLogic({
   setQuestionsAnswered,
   setLifesPlayer,
   setLifesEnemy,
+  isGameStarted,
+  lifesPlayer,
+  onGameOver,
 }: GameLogicProps) {
   const [grade, setGrade] = useState("1ero de Primaria");
   const [num1, setNum1] = useState(0);
@@ -34,8 +40,11 @@ export default function GameLogic({
   const [userAnswer, setUserAnswer] = useState("");
   const [correctAnswer, setCorrectAnswer] = useState(0);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(10);
   const inputRef = useRef<TextInput>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null); // 🔥 Nuevo para manejar el intervalo
 
+  // Leer grado
   useEffect(() => {
     const getGrade = async () => {
       const storedGrade = await AsyncStorage.getItem("grade");
@@ -44,22 +53,54 @@ export default function GameLogic({
     getGrade();
   }, []);
 
+  // Timer inicia cuando empieza el juego
+  useEffect(() => {
+    if (!isGameStarted) return;
+
+    setTimeLeft(10);
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          handleIncorrectAnswer();
+          setIsAnswered(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isGameStarted, questionsAnswered]);
+
+  // Terminar el juego si las vidas llegan a 0
+  useEffect(() => {
+    if (lifesPlayer <= 0) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      onGameOver();
+    }
+  }, [lifesPlayer, onGameOver]);
+
   const generateRandomNumbers = () => {
     let min = 1, max = 9;
-    if (grade === "4to de Primaria" || grade === "5to de Primaria" || grade === "6to de Primaria") {
-      min = 10; // 2 dígitos
+    if (["4to de Primaria", "5to de Primaria", "6to de Primaria"].includes(grade)) {
+      min = 10;
       max = 99;
     }
 
     let a = Math.floor(Math.random() * (max - min + 1)) + min;
     let b = Math.floor(Math.random() * (max - min + 1)) + min;
 
-    // Asegurar que la resta sea positiva
     if (operationType === "resta" && b > a) [a, b] = [b, a];
-
-    // Asegurar que la división sea exacta
     if (operationType === "division") {
-      a = a - (a % b); // Asegura que a sea divisible entre b
+      while (b === 0 || a % b !== 0) {
+        a = Math.floor(Math.random() * (max - min + 1)) + min;
+        b = Math.floor(Math.random() * (max - min + 1)) + min;
+      }
     }
 
     setNum1(a);
@@ -67,16 +108,14 @@ export default function GameLogic({
   };
 
   const handleCorrectAnswer = () => {
-    setScore(score + 1);
+    setScore((prev) => prev + 1);
     setQuestionsAnswered((prev) => prev + 1);
     setLifesEnemy((prev) => prev - 1);
-    // Alert.alert("¡Respuesta Correcta!", "¡Excelente, sigue así!");
   };
 
   const handleIncorrectAnswer = () => {
     setQuestionsAnswered((prev) => prev + 1);
     setLifesPlayer((prev) => prev - 1);
-    // Alert.alert("¡Respuesta Incorrecta!", "Más suerte para la próxima");
   };
 
   const generateQuestion = (operationType: string) => {
@@ -132,13 +171,17 @@ export default function GameLogic({
         generateRandomNumbers();
         setUserAnswer("");
         setIsAnswered(false);
+        setTimeLeft(10);
       }, 1000);
     }
   }, [isAnswered]);
 
   return (
     <View style={styles.container}>
+      <Text style={styles.timerText}>⏳ Tiempo: {timeLeft}s</Text>
+
       <Text style={styles.problem}>{generateQuestion(operationType)}</Text>
+
       <TextInput
         ref={inputRef}
         style={styles.input}
@@ -147,6 +190,7 @@ export default function GameLogic({
         onChangeText={setUserAnswer}
         placeholder="Tu respuesta"
       />
+
       <Pressable
         style={styles.btn}
         onPress={() => {
@@ -166,8 +210,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#793A03",
     paddingBottom: 20,
   },
+  timerText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FED300",
+    marginBottom: 10,
+  },
   problem: {
-    fontSize: 24,
+    fontSize: 28,
     marginBottom: 10,
     color: "white",
   },
