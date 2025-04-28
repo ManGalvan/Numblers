@@ -18,6 +18,8 @@ export default function Game() {
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
   const [modalGameOver, setModalGameOverVisible] = useState(false);
   const [modalTutorial, setModalTutorialVisible] = useState(true);
+  const [isGameStarted, setIsGameStarted] = useState(false);
+
 
   const progress = questionsAnswered / totalQuestions;
 
@@ -76,6 +78,9 @@ export default function Game() {
               setQuestionsAnswered={setQuestionsAnswered}
               setLifesPlayer={setLifesPlayer}
               setLifesEnemy={setLifesEnemy}
+              isGameStarted={!modalTutorial}
+              lifesPlayer={lifesPlayer}
+              onGameOver={() => setModalGameOverVisible(true)}
             />
           </View>
         )
@@ -95,7 +100,10 @@ export default function Game() {
               play={false}
               videoId={'oexd_Dfic_Q'}
             />
-            <Pressable style={[styles.button, styles.buttonCloseModal]} onPress={() => { setModalTutorialVisible(!modalTutorial) }}>
+            <Pressable style={[styles.button, styles.buttonCloseModal]} onPress={() => {
+              setModalTutorialVisible(!modalTutorial)
+              setIsGameStarted(true);
+            }}>
               <Text style={styles.textButtonModal}>Estoy listo</Text>
             </Pressable>
           </View>
